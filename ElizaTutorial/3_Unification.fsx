@@ -1,9 +1,7 @@
 module Part3
-
 #if INTERACTIVE
 #load "1_ProcessInput.fsx" "2_LoadData.fsx"
 #endif
-
 open Part1
 
 //==================================================
@@ -63,17 +61,22 @@ demoCompare list1 list2 []
 // -------------------------------------------------
 
 let rec unification pattern input acc =
-  // Pattern match on pattern and input:
-  //  - if both are empty, we succeeded!
-  //  - if pattern starts with wildcard return the result of one of the
-  //    following two recursive calls (first one, if it succeeds; second otherwise)
-  //     * recursively match rest of the pattern (without wildcard)
-  //       with the original input (and don't assing more words to wildcard)
-  //     * match all of the pattern (with wildcard)
-  //       with the rest of the input (assign the first word to the wildcard)
-  //  - if the pattern & input start with the same word, skip them
-  //  - otherwise we fail (because the pattern doesn't match input)
-  None  // CHANGE ME
+  // ---
+  match pattern, input with
+  | [], [] -> acc |> List.rev |> Some
+  | [Wildcard],[] -> unification [] [] acc
+  | Wildcard::pattern', x::input' ->
+      // match is finished
+      let finishMatch = unification pattern' input (acc)
+      match finishMatch with
+      | Some(_) -> finishMatch
+      | None -> 
+          // continue matching star
+          unification pattern input' (x::acc)
+  | Word w1::pattern', Word w2::input' when w1 = w2 ->
+        unification pattern' input' acc
+  | _ -> None // pattern exhausted
+  // ---
 
 // Test the unification function - all expressions should return true
 (unification (parseText "a *") (parseText "a b") []) = Some [Word "b"]
@@ -99,7 +102,12 @@ let rec unification pattern input acc =
 // Some with the identified substitution.
 // -------------------------------------------------
 let matchPattern (pattern : Sentence) (input : Sentence) = 
-    None // CHANGE ME
+    if pattern.IsQuestion then
+        if input.IsQuestion then 
+            unification pattern.Contents input.Contents []
+        else None
+    else 
+        unification pattern.Contents input.Contents []
 
 
 

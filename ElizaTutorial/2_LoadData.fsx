@@ -1,10 +1,8 @@
 module Part2
-
 #if INTERACTIVE
 #r "../packages/FSharp.Data/lib/net40/FSharp.Data.dll"
 #load "1_ProcessInput.fsx"
 #endif
-
 open FSharp.Data
 open Part1
 
@@ -30,9 +28,10 @@ type Demo2 = JsonProvider<"[{\"question\":\"Hello?\",\"answers\":[\"hello\",\"by
 let demoPhrases2 = Demo2.Load("../data/demo.json")
 
 // Explore the contents of the file
-for x in demoPhrases2 do
+demoPhrases2
+|> Array.iter (fun x -> 
     printfn "%s" x.Question
-    for a in x.Answers do printfn " >> %s" a 
+    x.Answers |> Array.iter (fun a -> printfn " >> %s" a)) 
 
 // -------------------------------------------------
 // TODO: First, we will load the phrases and patterns that Eliza
@@ -71,8 +70,19 @@ type PsychoPhrases = JsonProvider<"[{\"pattern\":\"Something\",\"answers\":[\"So
 // text of the phrase, without punctuation and in lower case (see Part 1).
 // The Answer patterns can keep the punctuation etc.
 // -------------------------------------------------
-let phrases : Phrases list =
-    []
+let phrases =
+    // ---
+    PsychoPhrases.Load("../data/phrases.json")
+    |> Array.map (fun phrase ->
+        let pattern:Sentence = 
+            { Contents = phrase.Pattern |> cleanText |> parseText
+              IsQuestion = isQuestion phrase.Pattern }
+        let answers = phrase.Answers |> Array.map parseText
+        { InputPattern = pattern
+          AnswerPatterns = answers }
+    )
+    |> List.ofArray
+    // ---
 
 //==================================================
 // Eliza often repeats part of user input, for example:
@@ -101,15 +111,19 @@ if demoDict.ContainsKey "white" then printfn "%s" demoDict.["white"]
 // reflected form.
 // -------------------------------------------------
 
-// 1. Create Json type provider to extract information from the 
-// "reflections.json" file
-// and use them to create a dictionary of translations
+// ---
+type Reflections = JsonProvider<"../data/reflections.json">
+let reflections = 
+    Reflections.GetSamples()
+    |> Array.map (fun x -> x.Input, x.Output)
+    |> dict
+// ---
 
-
-
-
-// 2. Reflect all the words in the text that can be reflected
-// based on the dictionary
-let reflect (text : string list) = []
-
-
+let reflect (text : string list) = 
+   // ---
+   text 
+   |> List.map (fun t -> 
+        if reflections.ContainsKey(t) 
+        then reflections.[t] 
+        else t)
+   // ---        
