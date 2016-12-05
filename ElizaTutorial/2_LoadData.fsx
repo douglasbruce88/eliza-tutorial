@@ -1,6 +1,6 @@
 module Part2
-#if INTERACTIVE
 
+#if INTERACTIVE
 #r "../packages/FSharp.Data/lib/net40/FSharp.Data.dll"
 #load "1_ProcessInput.fsx"
 #endif

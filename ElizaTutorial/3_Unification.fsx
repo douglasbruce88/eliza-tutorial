@@ -63,24 +63,35 @@ demoCompare list1 list2 []
 // -------------------------------------------------
 
 let rec unification pattern input acc =
-  // Pattern match on pattern and input:
-  //  - if both are empty, we succeeded!
-  //  - if pattern starts with wildcard return the result of one of the
-  //    following two recursive calls (first one, if it succeeds; second otherwise)
-  //     * recursively match rest of the pattern (without wildcard)
-  //       with the original input (and don't assing more words to wildcard)
-  //     * match all of the pattern (with wildcard)
-  //       with the rest of the input (assign the first word to the wildcard)
-  //  - if the pattern & input start with the same word, skip them
-  //  - otherwise we fail (because the pattern doesn't match input)
-  None  // CHANGE ME
+// Pattern match on pattern and input:
+//  - if pattern starts with wildcard return the result of one of the
+//    following two recursive calls (first one, if it succeeds; second otherwise)
+//     * recursively match rest of the pattern (without wildcard)
+//       with the original input (and don't assing more words to wildcard)
+//     * match all of the pattern (with wildcard)
+//       with the rest of the input (assign the first word to the wildcard)
+    match pattern, input with    
+    | [],[] -> 
+        // - if both are empty, we succeeded!
+        acc |> List.rev  |> Some
+    | Wildcard::xs, y::ys  -> // - if pattern starts with wildcard
+        match unification xs input acc with
+        | None -> unification pattern ys (y::acc)
+        | Some results -> Some  (results @ acc)
+    | x::xs, y::ys  when x = y -> 
+         //- if the pattern & input start with the same word, skip them
+        unification xs ys acc
+    | Wildcard::xs, [] -> 
+        acc |> List.rev  |> Some
+    | _ -> //  - otherwise we fail (because the pattern doesn't match input)
+        None
 
 // Test the unification function - all expressions should return true
-(unification (parseText "a *") (parseText "a b") []) = Some [Word "b"]
-(unification (parseText "a *") (parseText "b b") []) = None
-(unification (parseText "a *") (parseText "a b c") []) = Some [Word "b"; Word "c"]
-(unification (parseText "* a *") (parseText "a a b c") []) = Some [Word "a"; Word "b"; Word "c"]
-(unification (parseText "* a") (parseText "a") []) = Some []
+[(unification (parseText "a *") (parseText "a b") []) = Some [Word "b"]
+ (unification (parseText "a *") (parseText "b b") []) = None
+ (unification (parseText "a *") (parseText "a b c") []) = Some [Word "b"; Word "c"]
+ (unification (parseText "* a *") (parseText "a a b c") []) = Some [Word "a"; Word "b"; Word "c"]
+ (unification (parseText "* a") (parseText "a") []) = Some []]
 
 // -------------------------------------------------
 // TODO: Write the function that will match user input with pattern.
@@ -99,8 +110,6 @@ let rec unification pattern input acc =
 // Some with the identified substitution.
 // -------------------------------------------------
 let matchPattern (pattern : Sentence) (input : Sentence) = 
-    None // CHANGE ME
-
-
-
-
+    match pattern.IsQuestion = input.IsQuestion with
+    | true -> unification  (pattern.Contents) (input.Contents) []
+    | false -> None

@@ -1,7 +1,7 @@
 module Part4
 
 #if INTERACTIVE
-#load "3_Unification.fsx"
+#load "1_ProcessInput.fsx" "2_LoadData.fsx" "3_Unification.fsx"
 #endif
 
 open Part1
