@@ -37,17 +37,18 @@ let cleanText (input : string) =
 // TODO: write a function that splits text into individual words (or wildcards)
 // and returns Pattern list 
 // -------------------------------------------------
-let parseText (input : string) : Pattern list = []
+open System
+let parseText (input : string) : Pattern list = 
+    let split = input.Split([|' '|], StringSplitOptions.RemoveEmptyEntries)
+    let patterns = Array.map (fun s -> if s = "*" then Wildcard else Word s) split
+    List.ofArray patterns
 
 
-
+open System.Linq
 // -------------------------------------------------
 // TODO: write a function that checks if the input represents a question
 // -------------------------------------------------
-let isQuestion (input : string) = 
-    false // CHANGE ME
-
-
+let isQuestion (input : string) = input.EndsWith("?")
 
 // Test your implementation:
 let text = "Hello, is * there?"
